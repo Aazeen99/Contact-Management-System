@@ -1,5 +1,6 @@
 import os
 import time
+import csv
 
 #defining the contact list
 contacts = []
@@ -15,13 +16,17 @@ def add_contact():
     number = input('Enter the number: ')
     email = input('Enter the email: ')
 
-    contact = {
-        'name' : name,
-        'number' : number,
-        'email' : email
-    }
+    #check if the file exists
+    file_exist = os.path.isfile('contacts.csv')
 
-    contacts.append(contact)
+    with open('contacts.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+
+        if not file_exist:
+            writer.writerow(['Name', 'Contact', 'Email'])
+
+        writer.writerow([name, number, email])
+
     clear_screen()
     print(f'Contact \'{name}\' added successfully.')
     clear_screen()
@@ -35,18 +40,17 @@ def add_contact():
 
 def view_contact():
     clear_screen()
-    print('Contact List: \n')
 
-    if not contacts:
-        print('No contacts available.')
-        time.sleep(2)
-        clear_screen()
-    else:
-        for contact in contacts:
-            print('Name: ' +contact['name'])
-            print('Number: ' +contact['number'])
-            print('email: ' +contact['email'])
-            print('-' * 20)
+    file_exist = os.path.isfile('contacts.csv')
+
+    with open('contacts.csv', 'r') as file:
+        reader = csv.reader(file)
+
+        if not file_exist:
+            print('No contacts found.')
+
+        for row in reader:
+            print(row)
     
     input('Press Enter to return to the main menu.')
         
@@ -56,40 +60,52 @@ def search_contact():
     contact_name = input('Enter name to search: ')
     found = False
 
-    for contact in contacts:
-        if(contact['name'] == contact_name):
-            print('\nName: ' +contact['name'])
-            print('Number: ' +contact['number'])
-            print('email: ' +contact['email'])
-            found = True
-            break
+    with open('contacts.csv', 'r') as file:
+        reader = csv.reader(file)
+        next(reader)    #skips the first line containing headings
+
+        for row in reader:
+            if row[0].lower() == contact_name.lower():
+                print('Contact Found.')
+                print('Name: ' +row[0])
+                print('Number: ' +row[1])
+                print('Email: ' +row[2])
+                found = True
+                break
 
     if not found:
         print('No contact found')
 
     input('Press Enter to return to the main menu.')
 
+
+#this needs to be corrected
 def update_contact():
     clear_screen()
     print('Update Contact List\n')
     contact_name = input('Enter the name of contact you want to update: ')
     found = False
 
-    for contact in contacts:
-        if(contact['name'] == contact_name):
-            found = True
-            print(f'\nContact \'{contact_name}\' available.\n')
+    with open('contacts.csv','r') as file:
+        reader = csv.reader(file)
+        next(reader)    #skips the first line of headings
 
-            #take input you need to update
-            name = input('Enter updated name: ')
-            number = input('Enter updated number: ')
-            email = input('Enter updated email: ')
+        for row in reader:
+            if row[0].lower() == contact_name.lower():
+                print('\nContact found.\n')
+                print('Update the details.\n')
+                new_name = input('Name: ')
+                new_number = input('Number: ')
+                new_email = input('Email: ')
 
-            contact['name'] = name
-            contact['number'] = number
-            contact['email'] = email
-
-            break
+                with open('contacts.csv','a', newline='') as file:
+                    writer = csv.writer(file)
+                    row[0] = new_name
+                    row[1] = new_number
+                    row[2] = new_email
+                
+                found = True
+                break
 
     if not found:
         print('Contact not found.')
